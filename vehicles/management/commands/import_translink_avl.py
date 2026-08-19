@@ -35,6 +35,7 @@ class Command(ImportLiveVehiclesCommand):
     @staticmethod
     def get_journey_identity(item):
         return (
+            item["DayOfOperation"],
             item["JourneyIdentifier"],
             item["DirectionText"],
             item["LineText"],
@@ -104,8 +105,9 @@ class Command(ImportLiveVehiclesCommand):
             ).first()
 
         if journey.service:
-            journey.trip = journey.get_trip(date=parse_date(item["DayOfOperation"]))
-            print(journey.trip)
+            journey.trip = journey.get_trip(
+                date=parse_date(item["DayOfOperation"]), journey_code=journey.code
+            )
 
         return journey
 
