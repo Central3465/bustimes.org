@@ -1464,10 +1464,12 @@ input:not(:checked) + label {
 }
 
 .contact-details {
+    margin-top: -1em;
+
     > div {
-        float: left;
-        min-height: 2em;
-        margin: 0 1em 1em 0;
+        display: inline-block;
+        margin: 1em 1em 0 0;
+        vertical-align: top;
     }
 
     dt {
@@ -1480,12 +1482,8 @@ input:not(:checked) + label {
 
     .livery {
         float: left;
-        margin: 0 .25em -.25em 0;
+        margin-right: .25em;
     }
-}
-
-.horizontal {
-    clear: left;
 }
 
 .previous {
@@ -1497,7 +1495,6 @@ input:not(:checked) + label {
 }
 
 nav {
-    clear: left;
     margin: 1em auto;
     overflow: hidden;
 
@@ -1515,9 +1512,10 @@ nav {
 
 .vehicle-photo {
     float: right;
+    margin: 0 0 0 .5em;
     width: 140px;
     position: relative;
-    margin: 0;
+
     min-height: 70px;
 
     img {
@@ -1542,7 +1540,7 @@ nav {
 }
 
 #journeys {
-    clear: both;
+    clear: right;
 }
 
 #stickyAdContainer {
