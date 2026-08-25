@@ -1486,6 +1486,10 @@ input:not(:checked) + label {
     }
 }
 
+.vehicle-photo + h1 + .contact-details > div:first-child {
+    max-width: calc(100% - 140px - 1em);
+}
+
 .previous {
     float: left;
 }
@@ -1503,6 +1507,7 @@ nav {
     }
 }
 
+// table header
 .sticky {
     position: sticky;
     top: 0;
@@ -1512,7 +1517,7 @@ nav {
 
 .vehicle-photo {
     float: right;
-    margin: 0 0 0 .5em;
+    margin: 0;
     width: 140px;
     position: relative;
 
@@ -1563,10 +1568,15 @@ nav {
         top: 0;
         pointer-events: none;
         z-index: 9999;
+        container-type: scroll-state;
 
         iframe {
             background: var(--background-color);
             pointer-events: auto;
+
+            @container scroll-state(stuck: top) {
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.63);
+            }
         }
     }
 }
