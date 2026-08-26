@@ -42,7 +42,7 @@ from django_orjson.http import JsonResponse
 from haversine import haversine
 from orjson import loads
 from redis.exceptions import ConnectionError
-from requests import HTTPError
+from requests import RequestException
 from sql_util.utils import Exists, SubqueryMax, SubqueryMin
 
 from accounts.models import User
@@ -603,7 +603,7 @@ def get_dates(vehicle=None, service=None, after=None):
         cursor.execute(
             f"""WITH RECURSIVE dates AS (
                 (SELECT date FROM vehicles_vehiclejourney
-                 WHERE vehicle_id = %(vehicle)s AND date IS NOT NULL {after_condition}
+                 WHERE vehicle_id = %(vehicle)s {after_condition}
                  ORDER BY date LIMIT 1)
                 UNION ALL
                 SELECT (SELECT date FROM vehicles_vehiclejourney
@@ -878,7 +878,7 @@ class VehicleDetailView(DetailView):
                     form.add_error("url", "That doesn't look like a Flickr photo URL")
                 except WrongLicense:
                     form.add_error("url", "That photo isn't permissively licensed")
-                except HTTPError as e:
+                except RequestException as e:
                     form.add_error("url", f"Couldn't get the photo from Flickr ({e})")
 
         if form.errors:
