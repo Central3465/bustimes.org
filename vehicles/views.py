@@ -146,13 +146,17 @@ def liveries_css(request, version=0):
         livery_group = list(livery_group)
         styles += livery_group[0].get_styles([livery.id for livery in livery_group])
     styles = "".join(styles)
-    completed_process = subprocess.run(
-        ["lightningcss", "--minify"],
-        input=styles.encode(),
-        capture_output=True,
-        check=True,
-    )
-    styles = completed_process.stdout
+    try:
+        completed_process = subprocess.run(
+            ["lightningcss", "--minify"],
+            input=styles.encode(),
+            capture_output=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError:
+        pass
+    else:
+        styles = completed_process.stdout
     return HttpResponse(styles, content_type="text/css")
 
 
@@ -878,8 +882,9 @@ class VehicleDetailView(DetailView):
                     form.add_error("url", "That doesn't look like a Flickr photo URL")
                 except WrongLicense:
                     form.add_error("url", "That photo isn't permissively licensed")
-                except RequestException as e:
-                    form.add_error("url", f"Couldn't get the photo from Flickr ({e})")
+                except RequestException:
+                    form.add_error("url", "Couldn't get photo from Flickr")
+                    logger.exception("Flickr error")
 
         if form.errors:
             self.form = form

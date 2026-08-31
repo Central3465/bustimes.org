@@ -200,7 +200,7 @@ class VehicleJourneyViewSet(viewsets.ReadOnlyModelViewSet):
         return qs
 
     @staticmethod
-    def set_actual_departure_times(stop_times, locations):
+    def set_actual_times(stop_times, locations):
         stops = [st for st in stop_times if st.stop and st.stop.latlong]
         if not stops:
             return
@@ -239,7 +239,15 @@ class VehicleJourneyViewSet(viewsets.ReadOnlyModelViewSet):
                 idx = int(np.argmin(distances))
 
             if distances[idx] < 100:
-                stops[idx].actual_departure_time = location["datetime"]
+                stop = stops[idx]
+                if (
+                    stop.arrival is not None
+                    and stop.departure is not None
+                    and stop.arrival != stop.departure
+                    and not getattr(stop, "actual_arrival_time", None)
+                ):
+                    stop.actual_arrival_time = location["datetime"]
+                stop.actual_departure_time = location["datetime"]
 
     def trip_from_siri(self, instance, locations):
         try:
@@ -373,7 +381,7 @@ class VehicleJourneyViewSet(viewsets.ReadOnlyModelViewSet):
             if instance.trip.id:
                 instance.trip.stops = list(TripViewSet.get_stops(instance.trip))
             if locations:
-                self.set_actual_departure_times(instance.trip.stops, locations)
+                self.set_actual_times(instance.trip.stops, locations)
             trip_serializer = serializers.TripSerializer(instance.trip)
             extra_data["trip"] = trip_serializer.data
 
@@ -389,9 +397,26 @@ class VehicleJourneyViewSet(viewsets.ReadOnlyModelViewSet):
                 params["trip_id"] = instance.trip_id
                 params["stop_times"] = instance.trip.stops
             live = get_vehicle_locations(**params, tzinfo=tzinfo)
-            # check that this journey is actually tracking (not an old journey)
-            if live and any(instance.id == item["journey_id"] for item in live):
-                extra_data["live"] = live
+            this = None
+            if live := get_vehicle_locations(**params, tzinfo=tzinfo):
+                # check that this journey is actually tracking (not an old journey)
+                for item in live:
+                    if instance.id == item["journey_id"]:
+                        this = item
+                        extra_data["live"] = live
+                        break
+
+            if this and not extra_data.get("time_aware_polyline"):
+                # one-item polyline
+                extra_data["time_aware_polyline"] = encode_time_aware_polyline(
+                    (
+                        (
+                            this["coordinates"][0],
+                            this["coordinates"][1],
+                            int(datetime.fromisoformat(this["datetime"]).timestamp()),
+                        ),
+                    )
+                )
 
         if not instance.trip and instance.vehicle_id and instance.vehicle.operator:
             extra_data["operator"] = {

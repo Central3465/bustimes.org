@@ -1234,6 +1234,7 @@ input:not(:checked) + label {
     table {
         table-layout: fixed;
         width: 100%;
+        margin-bottom: 1em;
     }
 
     tbody {
@@ -1521,11 +1522,9 @@ nav {
     width: 140px;
     position: relative;
 
-    min-height: 70px;
-
     img {
         display: block;
-        width: 140px;
+        width: 100%;
         height: auto;
     }
 
