@@ -54,7 +54,7 @@ class SearchMixin:
 class Region(models.Model):
     """The largest type of geographical area"""
 
-    id = models.CharField(max_length=2, primary_key=True)
+    id = models.CharField(max_length=10, primary_key=True)
     name = models.CharField(max_length=48)
 
     class Meta:
