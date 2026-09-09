@@ -32,7 +32,7 @@ class CheckboxSelectMultipleWithDefault(forms.CheckboxSelectMultiple):
 class TimetableForm(forms.Form):
     date = forms.DateField(required=False)
     calendar = forms.IntegerField(required=False)
-    detailed = forms.BooleanField(required=False)
+    detailed = forms.BooleanField(required=False, initial=True)  # <-- Checked by default
     vehicles = forms.BooleanField(required=False)
     service = forms.MultipleChoiceField(
         required=False, widget=CheckboxSelectMultipleWithDefault
@@ -65,17 +65,26 @@ class TimetableForm(forms.Form):
         else:
             del self.fields["service"]
 
+    def clean(self):
+        cleaned_data = super().clean()
+        # If 'detailed' is missing from the request, default to True.
+        # This handles initial loads (self.data is None) and form submissions 
+        # where the checkbox was unchecked (key missing from self.data).
+        if self.data is None or "detailed" not in self.data:
+            cleaned_data["detailed"] = True
+        return cleaned_data
+
     def get_timetable(self, service):
         if self.is_valid():
-            date = self.cleaned_data["date"]
-            calendar_id = self.cleaned_data["calendar"]
+            date = self.cleaned_data.get("date")
+            calendar_id = self.cleaned_data.get("calendar")
             line_names = self.cleaned_data.get("service")
-            detailed = self.cleaned_data["detailed"]
+            detailed = self.cleaned_data.get("detailed", True)
         else:
             date = None
             calendar_id = None
             line_names = None
-            detailed = False
+            detailed = True
 
         return service.get_timetable(
             day=date,
